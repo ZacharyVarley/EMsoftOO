@@ -926,18 +926,49 @@ call memth%dealloc(patternintd, 'patternintd', TID=TID)
 !$OMP END PARALLEL
 
 call Message%printMessage(' Computing covariance matrix')
-! next we compute the covariance array using the BLAS dsyrk routine
+
+! Covariance calculation
 LDA = L
 LDC = L
 NNNN = L
 KKKK = FZcnt
-ALPHA = 1.D0
-BETA = 0.D0 
-UPLO = 'U'
-TRANS = 'N'
-call dsyrk( UPLO, TRANS, NNNN, KKKK, ALPHA, dict, LDA, BETA, covmat, LDC)
-covmat = covmat / dble(L-1)
+batch_size = 1024
+num_batches = FZcnt / batch_size
+remainder = mod(FZcnt, batch_size)
+if (remainder > 0) num_batches = num_batches + 1  ! add an extra batch for the remainder
+covmat_local = 0.D0
+
+! Parallelization
+! Each thread computes its local covariance matrix
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(TID, i, j, k, start, end)
+TID = OMP_GET_THREAD_NUM()
+
+batch_loop: do batch_num = TID, num_batches - 1, OMP_GET_NUM_THREADS()
+    start = batch_num * batch_size + 1
+    end = start + batch_size - 1
+    if (batch_num == num_batches - 1 .and. remainder > 0) then  ! If it's the last batch and there's a remainder
+        end = start + remainder - 1
+    end if
+    covmat_thread = 0.D0
+    ! Incremental covariance computation for each batch
+    do k = start, end
+        do j = 1, L
+            do i = 1, L
+                covmat_thread(i,j) = covmat_thread(i,j) + dict(i,k) * dict(j,k)
+            end do
+        end do
+    end do
+    !$OMP CRITICAL
+    covmat_local = covmat_local + covmat_thread
+    !$OMP END CRITICAL
+end do batch_loop
+
+!$OMP END PARALLEL
+
+! Normalization and final computation
+covmat = covmat_local / dble(L-1)
 call Message%printMessage('  ---> done')
+
 
 ! next is the SVD step
 call Message%printMessage(' Performing SVD decomposition')
