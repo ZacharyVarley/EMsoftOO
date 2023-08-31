@@ -735,6 +735,17 @@ integer(kind=irg)                                   :: LINFO
 integer(kind=irg)                                   :: LDC
 integer(kind=irg)                                   :: iar(3,2)
 
+! parameters for batched covariance matrix estimation
+integer(kind=irg)                                   :: batchsize
+integer(kind=irg)                                   :: batchcount
+integer(kind=irg)                                   :: remainder
+integer(kind=irg)                                   :: batchstart
+integer(kind=irg)                                   :: batchend
+integer(kind=irg)                                   :: batchid
+integer(kind=irg)                                   :: numbatches
+integer(kind=irg)                                   :: k
+real(kind=dbl),allocatable                          :: covmat_thread(:,:)
+
 ! parameters for BLAS dgemm() matrix-matrix multiplication routine
 character(1)                                        :: TRANSA, TRANSB
 integer(kind=irg)                                   :: MMMM, LDB
@@ -928,45 +939,53 @@ call memth%dealloc(patternintd, 'patternintd', TID=TID)
 call Message%printMessage(' Computing covariance matrix')
 
 ! Covariance calculation
-LDA = L
-LDC = L
-NNNN = L
-KKKK = FZcnt
-batch_size = 1024
-num_batches = FZcnt / batch_size
-remainder = mod(FZcnt, batch_size)
-if (remainder > 0) num_batches = num_batches + 1  ! add an extra batch for the remainder
-covmat_local = 0.D0
+batchsize = 1024
+numbatches = FZcnt / batchsize
+remainder = mod(FZcnt, batchsize)
+if (remainder > 0) then 
+  numbatches = numbatches + 1  ! add an extra batch for the remainder
+end if
 
-! Parallelization
 ! Each thread computes its local covariance matrix
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(TID, i, j, k, start, end)
+!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(TID, i, j, k, batchstart, batchend) &
+!$OMP& PRIVATE(covmat_thread, batchsize, batchcount, remainder)
+
 TID = OMP_GET_THREAD_NUM()
 
-batch_loop: do batch_num = TID, num_batches - 1, OMP_GET_NUM_THREADS()
-    start = batch_num * batch_size + 1
-    end = start + batch_size - 1
-    if (batch_num == num_batches - 1 .and. remainder > 0) then  ! If it's the last batch and there's a remainder
-        end = start + remainder - 1
+call memth%alloc(covmat_thread, (/ L,L /), 'covmat_thread', TID=TID, initval = 0.D0)
+
+!$OMP DO SCHEDULE(DYNAMIC)
+
+batch_loop: do batchid = TID, numbatches - 1, OMP_GET_NUM_THREADS()
+    batchstart = batchid * batchsize + 1
+    batchend = batchstart + batchsize - 1
+    if (batchid == numbatches - 1 .and. remainder > 0) then  ! If it's the last batch and there's a remainder
+        batchend = batchstart + remainder - 1
     end if
     covmat_thread = 0.D0
     ! Incremental covariance computation for each batch
-    do k = start, end
+    do k = batchstart, batchend
         do j = 1, L
             do i = 1, L
                 covmat_thread(i,j) = covmat_thread(i,j) + dict(i,k) * dict(j,k)
             end do
         end do
     end do
+
     !$OMP CRITICAL
-    covmat_local = covmat_local + covmat_thread
+    covmat = covmat + covmat_thread
     !$OMP END CRITICAL
+
 end do batch_loop
+
+!$OMP END DO
+
+call memth%dealloc(covmat_thread, 'covmat_thread', TID=TID)
 
 !$OMP END PARALLEL
 
 ! Normalization and final computation
-covmat = covmat_local / dble(L-1)
+covmat = covmat / dble(FZcnt-1)
 call Message%printMessage('  ---> done')
 
 
