@@ -43,6 +43,7 @@ module mod_notifications
 
 use mod_kinds
 use mod_global
+use mod_platformsupport
 
 IMPLICIT NONE
 
@@ -50,7 +51,8 @@ contains
 
 !--------------------------------------------------------------------------
 recursive function PostSlackMessage(EMsoft, MessageLines, NumLines, MessageTitle) result(status)
-  !! author: MDG
+ !DEC$ ATTRIBUTES DLLEXPORT :: PostSlackMessage
+ !! author: MDG
   !! version: 1.0
   !! date: 01/26/20
   !!
@@ -99,7 +101,7 @@ if (EMsoft%getConfigParameter('EMsoftplatform').ne.'Windows') then
 
    ! and generate the curl command string
      cmd = 'curl -s -d ''payload='//trim(JSONMessage)//''' '//trim(EMSlackWebHookURL)//' >/dev/null'
-     call system(cmd)
+     status = system_system(cmd)
   end if
 else
   call Message%printMessage('This option is not yet implemented on Windows 10...')
@@ -148,7 +150,7 @@ else
 
 ! and generate the email send command string
    cmd = 'echo "'//trim(EmailMessage)//'" | mail -s "Message from '//trim(MessageTitle)//'" '//trim(UserEmail)
-   call system(cmd)
+   status = system_system(cmd)
 end if
 
 end function PostEmailMessage
@@ -176,6 +178,7 @@ integer(kind=irg)            :: status
 type(IO_T)                   :: Message
 character(fnlen)             :: notifymode, platform
 integer(kind=irg)            :: ierr
+
 
 platform = EMsoft%getConfigParameter('EMsoftplatform')
 
@@ -207,6 +210,8 @@ if (trim(platform).ne.'Windows') then
 else
    call Message%printMessage('PostMessage Warning: notifications are disabled on Windows at this time')
 end if
+
+status = ierr 
 
 end function PostMessage
 

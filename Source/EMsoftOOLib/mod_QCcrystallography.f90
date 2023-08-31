@@ -228,6 +228,7 @@ contains
 
 !--------------------------------------------------------------------------
 type(QCcell_T) function QCcell_T_constructor( ) result(self)
+!DEC$ ATTRIBUTES DLLEXPORT :: QCcell_T_constructor
 !! author: MDG 
 !! version: 1.0 
 !! date: 01/30/22
@@ -236,10 +237,13 @@ type(QCcell_T) function QCcell_T_constructor( ) result(self)
  
 IMPLICIT NONE
 
+self%atno = 0 
+
 end function QCcell_T_constructor
 
 !--------------------------------------------------------------------------
 type(QCcell_axial_T) function QCcell_T_axial_constructor( ) result(self)
+!DEC$ ATTRIBUTES DLLEXPORT :: QCcell_T_axial_constructor
 !! author: MDG 
 !! version: 1.0 
 !! date: 01/30/22
@@ -248,10 +252,13 @@ type(QCcell_axial_T) function QCcell_T_axial_constructor( ) result(self)
  
 IMPLICIT NONE
 
+self%atno = 0 
+
 end function QCcell_T_axial_constructor
 
 !--------------------------------------------------------------------------
 type(QCcell_icosahedral_T) function QCcell_T_icosahedral_constructor( ) result(self)
+!DEC$ ATTRIBUTES DLLEXPORT :: QCcell_T_icosahedral_constructor
 !! author: MDG 
 !! version: 1.0 
 !! date: 01/30/22
@@ -260,10 +267,13 @@ type(QCcell_icosahedral_T) function QCcell_T_icosahedral_constructor( ) result(s
  
 IMPLICIT NONE
 
+self%atno = 0 
+
 end function QCcell_T_icosahedral_constructor
 
 !--------------------------------------------------------------------------
 subroutine QCcell_T_destructor(self) 
+!DEC$ ATTRIBUTES DLLEXPORT :: QCcell_T_destructor
 !! author: MDG 
 !! version: 1.0 
 !! date: 01/30/22

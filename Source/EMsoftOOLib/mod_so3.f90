@@ -1225,7 +1225,7 @@ recursive subroutine CubochoricNeighbors_(self, cubneighbor, nn, cub, stepsize)
   !! version: 1.0
   !! date: 01/22/20
   !!
-  !! find the nearest neighbors of a point in s03 space, given the point
+  !! find the nearest neighbors of a point in SO(3) space, given the point
   !! and the step size used in the previous meshing. to be used in multi resolution
   !! indexing programs, specifically the PED, ECP and EBSD indexing. we're not worrying
   !! about keeping the neighbors in the FZ. that can just be done later.
@@ -1860,8 +1860,7 @@ recursive subroutine sample_UNI_(self, num)
   !! version: 1.0
   !! date: 12/21/22
   !!
-  !! generate a random Marsaglia sampling of unit quaternions
-  !! this sampling method is actually implemented in the mod_quaternions module 
+  !! generate a random uniform sampling of unit quaternions
 
 use mod_quaternions
 use mod_io
@@ -4114,7 +4113,7 @@ end do
 allocate(Eangles(3,ipf_wd * ipf_ht), weights(ipf_wd * ipf_ht))
 do i=1,ipf_wd*ipf_ht 
   read(dataunit,'(a)') line 
-  read(line,*) nco, var, var, nco, nco, e1, e2, e3, wt 
+  read(line,*) nco, var, var, nco, var, e1, e2, e3, wt 
   Eangles(1:3,i) = (/ e1, e2, e3 /)
   weights(i) = wt
 end do

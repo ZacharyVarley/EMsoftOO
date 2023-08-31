@@ -44,6 +44,7 @@ set(EMsoftOOLib_SRCS
   ${EMsoftOOLib_SOURCE_DIR}/mod_pgm.f90
   ${EMsoftOOLib_SOURCE_DIR}/mod_math.f90
   ${EMsoftOOLib_SOURCE_DIR}/spsort.f
+  ${EMsoftOOLib_SOURCE_DIR}/minpack.f
   ${EMsoftOOLib_SOURCE_DIR}/mod_rotations.f90
   ${EMsoftOOLib_SOURCE_DIR}/mod_povray.f90
   ${EMsoftOOLib_SOURCE_DIR}/mod_so3.f90
@@ -129,6 +130,7 @@ set(EMsoftOOLib_SRCS
   ${EMsoftOOLib_SOURCE_DIR}/program_mods/mod_FitOrientation.f90
   ${EMsoftOOLib_SOURCE_DIR}/program_mods/mod_ECCI.f90
   ${EMsoftOOLib_SOURCE_DIR}/program_mods/mod_CPLMmaster.f90
+  ${EMsoftOOLib_SOURCE_DIR}/program_mods/mod_CPLM.f90
   ${EMsoftOOLib_SOURCE_DIR}/program_mods/mod_Lauemaster.f90
   ${EMsoftOOLib_SOURCE_DIR}/program_mods/mod_Laue.f90
   ${EMsoftOOLib_SOURCE_DIR}/program_mods/mod_LaueDCT.f90
@@ -193,6 +195,19 @@ set(EMsoft_HDF5_110_DEFINES "
 ")
 endif()
 
+if (Fortran_COMPILER_NAME MATCHES "ifort.*")
+  set(CMAKE_USE_IFORT "") 
+  set(CMAKE_USE_GFORTRAN "! ") 
+else()
+  set(CMAKE_USE_IFORT "! ") 
+  set(CMAKE_USE_GFORTRAN "") 
+endif()
+
+cmpConfigureFileWithMD5Check( GENERATED_FILE_PATH        ${EMsoftOOLib_BINARY_DIR}/mod_platformsupport.f90
+                              CONFIGURED_TEMPLATE_PATH   ${EMsoftOOLib_SOURCE_DIR}/mod_platformsupport.in.f90 )
+
+
+
 cmpConfigureFileWithMD5Check( GENERATED_FILE_PATH        ${EMsoftOOLib_BINARY_DIR}/mod_EMsoft.f90
                               CONFIGURED_TEMPLATE_PATH   ${EMsoftOOLib_SOURCE_DIR}/mod_EMsoft.in.f90 )
 # -------------------------------------------------------------------------------
@@ -200,6 +215,7 @@ cmpConfigureFileWithMD5Check( GENERATED_FILE_PATH        ${EMsoftOOLib_BINARY_DI
 set(EMsoftOOLib_SRCS
   ${EMsoftOOLib_SRCS}
   ${EMsoftOOLib_BINARY_DIR}/mod_EMsoft.f90
+  ${EMsoftOOLib_BINARY_DIR}/mod_platformsupport.f90
   ${EMsoftOOLib_BINARY_DIR}/stringconstants.f90
 )
 

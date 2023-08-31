@@ -1,5 +1,5 @@
 ! ###################################################################
-! Copyright (c) 2013-2023, Marc De Graef Research Group/Carnegie Mellon University
+! Copyright (c) 2016-2023, Marc De Graef Research Group/Carnegie Mellon University
 ! All rights reserved.
 !
 ! Redistribution and use in source and binary forms, with or without modification, are 
@@ -26,48 +26,43 @@
 ! USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ! ###################################################################
 
-program EMsoftSlackTest
+program EMEBSDdefect
   !! author: MDG
   !! version: 1.0 
-  !! date: 01/26/20
+  !! date: 06/05/23
   !!
-  !! EMsoftSlackTest sends a simple test message to a Slack channel
+  !! Generate a set of EBSD patterns for a scan across an ROI containing defects
+  !! The output patterns can then be used to obtain ECCI-type images
 
 use mod_kinds
 use mod_global
-use mod_EMsoft 
-use mod_io
-use mod_notifications
-use mod_platformsupport
+use mod_EMsoft
+use mod_EBSDdefect
+use mod_HDFnames
+use stringconstants
 
 IMPLICIT NONE
 
-character(fnlen)              :: progname = 'EMsoftSlackTest'
-character(fnlen)              :: progdesc = 'Sends a simple test message to the currently configured Slack channel'
-type(EMsoft_T)                :: EMsoft 
+character(fnlen)                :: progname = 'EMEBSDdefect.f90'
+character(fnlen)                :: progdesc = 'Generate EBSD patterns for a scan across an ROI containing defects'
 
-type(IO_T)                    :: Message
-character(fnlen),ALLOCATABLE  :: MessageLines(:)
-integer(kind=irg)             :: NumLines, i
-integer(kind=4)               :: hnStat
-character(fnlen)              :: MessageTitle, line
-character(100)                :: c
+type(EMsoft_T)                  :: EMsoft
+type(EBSDdefect_T)              :: EBSDdef 
+type(HDFnames_T)                :: HDFnames
 
-EMsoft = EMsoft_T( progname, progdesc, tpl = (/ 922 /) )
+! print the EMsoft header and handle any command line arguments  
+EMsoft = EMsoft_T( progname, progdesc, tpl = (/ 0, 3, 140, 200 /) )
 
-if (trim(EMsoft%getConfigParameter('Notify')).ne.'Off') then
-    NumLines = 1
-    allocate(MessageLines(NumLines))
-    call Message%printMessage(' Enter a test sentence (between single quotes):')
-    call Message%ReadValue(' ---> ', line)
+! deal with the namelist stuff
+EBSDdef = EBSDdefect_T(EMsoft%nmldeffile)
 
-    hnStat = system_hostnm(c)
- 
-    MessageLines(1) = trim(line)
-    MessageTitle = 'EMsoft on '//trim(c)
-    i = PostMessage(EMsoft, MessageLines, NumLines, MessageTitle)
-else
-   call Message%printMessage('Notifications are turned off in your EMsoftConfig.json configuration file')
-end if
+HDFnames = HDFnames_T() 
+call HDFnames%set_ProgramData(SC_EBSDdefect) 
+call HDFnames%set_NMLlist(SC_EBSDdefectNameList) 
+call HDFnames%set_NMLfilename(SC_EBSDdefectNML) 
+call HDFnames%set_Variable(SC_MCOpenCL) 
 
-end program EMsoftSlackTest
+! perform the computations
+call EBSDdef%EBSDdefect(EMsoft, progname, HDFnames)
+
+end program EMEBSDdefect
