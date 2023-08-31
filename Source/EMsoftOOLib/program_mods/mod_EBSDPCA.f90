@@ -948,7 +948,7 @@ end if
 
 ! Each thread computes its local covariance matrix
 !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(TID, i, j, k, batchstart, batchend) &
-!$OMP& PRIVATE(covmat_thread, batchsize, batchcount, remainder)
+!$OMP& PRIVATE(covmat_thread, batchcount)
 
 TID = OMP_GET_THREAD_NUM()
 
@@ -956,8 +956,8 @@ call memth%alloc(covmat_thread, (/ L,L /), 'covmat_thread', TID=TID, initval = 0
 
 !$OMP DO SCHEDULE(DYNAMIC)
 
-batch_loop: do batchid = TID, numbatches - 1, OMP_GET_NUM_THREADS()
-    batchstart = batchid * batchsize + 1
+batch_loop: do batchid = 1, numbatches
+    batchstart = ( batchid-1 ) * batchsize + 1
     batchend = batchstart + batchsize - 1
     if (batchid == numbatches - 1 .and. remainder > 0) then  ! If it's the last batch and there's a remainder
         batchend = batchstart + remainder - 1
@@ -976,6 +976,7 @@ batch_loop: do batchid = TID, numbatches - 1, OMP_GET_NUM_THREADS()
     covmat = covmat + covmat_thread
     !$OMP END CRITICAL
 
+    
 end do batch_loop
 
 !$OMP END DO
