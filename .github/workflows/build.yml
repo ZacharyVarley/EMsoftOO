@@ -1,0 +1,91 @@
+name: EMsoft Nightly Build
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git vim wget cmake gcc gfortran ninja-build build-essential libopenblas-dev apt-utils opencl-headers ocl-icd-opencl-dev ocl-icd-libopencl1 libpocl-dev clinfo
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install git vim wget cmake gcc gfortran ninja openblas
+
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install -y git vim wget cmake mingw-w64 openblas ninja
+
+    - name: Build EMsoft
+      run: |
+        chmod +x ./build_${{ matrix.os }}.sh
+        ./build_${{ matrix.os }}.sh
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: EMsoft-package-${{ matrix.os }}
+        path: EMsoftOOBuild/Release/*.zip
+        retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+    - uses: actions/checkout@v2
+    
+    - uses: actions/download-artifact@v2
+      with:
+        name: EMsoft-package-${{ matrix.os }}
+        
+    # Add steps here to run your tests on the built artifact
+
+  release:
+    name: "Prelease"
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: artifacts
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: true
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ format('artifacts/EMsoft-package-{0}/EMsoft-{0}.zip', matrix.os) }}
+        asset_name: ${{ format('EMsoft-{0}.zip', matrix.os) }}
+        asset_content_type: application/zip
+      strategy:
+        matrix:
+          os: [ubuntu-latest, macos-latest, windows-latest]
