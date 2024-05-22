@@ -12,7 +12,7 @@ jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Install dependencies (Ubuntu)
       run: |
@@ -25,7 +25,7 @@ jobs:
         ./build_ubuntu.sh
 
     - name: Upload artifact (Ubuntu)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: EMsoft-package-ubuntu
         path: EMsoftOOBuild/Release/*.zip
@@ -34,7 +34,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Install dependencies (macOS)
       run: |
@@ -46,7 +46,7 @@ jobs:
         ./build_macos.sh
 
     - name: Upload artifact (macOS)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: EMsoft-package-macos
         path: EMsoftOOBuild/Release/*.zip
@@ -55,7 +55,7 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Install dependencies (Windows)
       run: |
@@ -66,7 +66,7 @@ jobs:
         ./build_windows.bat
 
     - name: Upload artifact (Windows)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: EMsoft-package-windows
         path: EMsoftOOBuild/Release/*.zip
@@ -79,9 +79,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: EMsoft-package-${{ matrix.os }}
 
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         path: artifacts
 
