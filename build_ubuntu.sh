@@ -1,19 +1,10 @@
 #!/bin/bash
-
-# Install dependencies
-sudo apt-get update
-sudo apt-get install -y git vim wget cmake gcc gfortran ninja-build build-essential libopenblas-dev apt-utils opencl-headers ocl-icd-opencl-dev ocl-icd-libopencl1 libpocl-dev clinfo
-
-# Set up OpenCL for Nvidia
-sudo mkdir -p /etc/OpenCL/vendors
-sudo echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
-
 # Clone EMsoft and set up SDK Debug/Release
-sudo mkdir -p /home/EMs
-sudo cd /home/EMs
-sudo git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
-sudo mv EMsoftSuperbuild EMsoftOOSuperbuild
-sudo cd EMsoftOOSuperbuild && mkdir Debug Release
+mkdir -p $HOME/EMs
+cd $HOME/EMs
+git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
+mv EMsoftSuperbuild EMsoftOOSuperbuild
+cd EMsoftOOSuperbuild && mkdir Debug Release
 
 # Build EMsoftSuperbuild
 cd /home/EMs/EMsoftOOSuperbuild/Debug/
