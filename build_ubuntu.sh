@@ -17,7 +17,7 @@ mkdir EMsoftOOBuild
 
 # Build EMsoftOO
 cd $HOME/EMsoftOOBuild/ && mkdir Release && cd Release
-cmake -DCMAKE_BUILD_TYPE=Debug -DEMsoftOO_SDK=$HOME/EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF ../../EMsoftOO -G Ninja
+cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=$HOME/EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF ../../EMsoftOO -G Ninja
 ninja
 
 # Package EMsoftOO
