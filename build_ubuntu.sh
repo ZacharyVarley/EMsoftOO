@@ -9,11 +9,11 @@ sudo mkdir -p /etc/OpenCL/vendors
 sudo echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
 # Clone EMsoft and set up SDK Debug/Release
-mkdir -p /home/EMs
-cd /home/EMs
-git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
-mv EMsoftSuperbuild EMsoftOOSuperbuild
-cd EMsoftOOSuperbuild && mkdir Debug Release
+sudo mkdir -p /home/EMs
+sudo cd /home/EMs
+sudo git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
+sudo mv EMsoftSuperbuild EMsoftOOSuperbuild
+sudo cd EMsoftOOSuperbuild && mkdir Debug Release
 
 # Build EMsoftSuperbuild
 cd /home/EMs/EMsoftOOSuperbuild/Debug/
