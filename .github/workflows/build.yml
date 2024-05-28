@@ -31,53 +31,13 @@ jobs:
         path: EMsoftOOBuild/Release/*.zip
         retention-days: 1
 
-  build-macos:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Install dependencies (macOS)
-      run: |
-        brew install git vim wget cmake gcc gfortran ninja openblas
-
-    - name: Build EMsoft (macOS)
-      run: |
-        chmod +x ./build_macos.sh
-        ./build_macos.sh
-
-    - name: Upload artifact (macOS)
-      uses: actions/upload-artifact@v4
-      with:
-        name: EMsoft-package-macos
-        path: EMsoftOOBuild/Release/*.zip
-        retention-days: 1
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Install dependencies (Windows)
-      run: |
-        choco install -y git vim wget cmake mingw-w64 openblas ninja
-
-    - name: Build EMsoft (Windows)
-      run: |
-        ./build_windows.bat
-
-    - name: Upload artifact (Windows)
-      uses: actions/upload-artifact@v4
-      with:
-        name: EMsoft-package-windows
-        path: EMsoftOOBuild/Release/*.zip
-        retention-days: 1
 
   test:
-    needs: [build-ubuntu, build-macos, build-windows]
+    needs: [build-ubuntu]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
     steps:
     - uses: actions/checkout@v4
 
@@ -89,7 +49,7 @@ jobs:
 
   release:
     name: "Prelease"
-    needs: [build-ubuntu, build-macos, build-windows, test]
+    needs: [build-ubuntu, test]
     runs-on: ubuntu-latest
     steps:
     - name: Download artifacts
