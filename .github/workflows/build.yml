@@ -1,12 +1,12 @@
 name: EMsoft Nightly Build
 
-# on:
+on:
 #   schedule:
 #     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
-#   push:
-#     branches: [ develop ]
-#   pull_request:
-#     branches: [ develop ]
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
 
 jobs:
   build-ubuntu:
