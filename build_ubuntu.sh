@@ -12,7 +12,7 @@ cmake -DEMsoftOO_SDK=$HOME/EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release ../ -G Ninja 
 # Clone EMsoftOO and EMsoftData
 cd $HOME
 git clone https://github.com/EMsoft-org/EMsoftData.git
-git clone https://github.com/EMsoft-org/EMsoftOO.git
+git clone https://github.com/ZacharyVarley/EMsoftOO.git
 mkdir EMsoftOOBuild
 
 # Build EMsoftOO
