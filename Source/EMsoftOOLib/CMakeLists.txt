@@ -355,11 +355,6 @@ EMsoftOO_SetupInstallDirs()
   )
 #endif()
 
-install(FILES ${EMsoftOOLib_BINARY_DIR}/EMsoftOOStringConstants.h
-      DESTINATION ${include_install_dir}/EMsoftOOLib
-      COMPONENT Applications
-)
-
 if(APPLE AND BUILD_SHARED_LIBS)
   set(QAB_INSTALL_DEST "lib")
   set(osx_app_name "libEMsoftOOLib.dylib")
