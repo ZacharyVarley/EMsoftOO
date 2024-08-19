@@ -2,7 +2,6 @@
 
 # Find gfortran path
 FC_PATH=$(brew --prefix gcc)/bin/gfortran
-export FC=$(brew --prefix gcc)/bin/gfortran
 
 # Clone EMsoft and set up SDK Release
 git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
@@ -10,7 +9,7 @@ sudo mv EMsoftSuperbuild EMsoftOOSuperbuild
 cd EMsoftOOSuperbuild && sudo mkdir Release && cd Release
 
 # Build EMsoftSuperbuild
-sudo cmake -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release ../ -G Ninja && sudo ninja
+sudo cmake -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_Fortran_COMPILER=$FC_PATH ../ -G Ninja && sudo ninja
 
 # Display configuration logs for debugging
 echo "nlopt configuration log:"
