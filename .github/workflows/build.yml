@@ -39,8 +39,7 @@ jobs:
       - name: Install dependencies (macOS)
         run: |
           brew update
-          brew install git cmake gcc ninja openblas
-          brew install open-mpi
+          brew install git cmake gcc gfortran ninja open-mpi
       - name: Run macOS build script
         run: |
           chmod +x ./build_macos.sh
