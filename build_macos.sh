@@ -11,6 +11,13 @@ cd EMsoftOOSuperbuild && sudo mkdir Release && cd Release
 # Build EMsoftSuperbuild
 sudo cmake -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_Fortran_COMPILER=$FC_PATH ../ -G Ninja && sudo ninja
 
+# Display configuration logs for debugging
+echo "nlopt configuration log:"
+cat /opt/EMsoftOO_SDK/superbuild/nlopt-2.7.0/Stamp/nlopt-configure-*.log
+
+echo "CLFortran configuration log:"
+cat /opt/EMsoftOO_SDK/superbuild/CLFortran/Stamp/Release/CLFortran-configure-*.log
+
 # Clone EMsoftOO and EMsoftData
 cd ../..
 git clone https://github.com/EMsoft-org/EMsoftData.git
