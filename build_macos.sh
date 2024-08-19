@@ -2,6 +2,7 @@
 
 # Find gfortran path
 export FC=$(brew --prefix gcc)/bin/gfortran
+echo "which gfortran: $(which gfortran)"
 echo "gfortran path: $FC"
 
 # Clone EMsoft and set up SDK Release
