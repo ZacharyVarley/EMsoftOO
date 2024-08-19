@@ -30,10 +30,7 @@ jobs:
           path: $HOME/EMsoftOOBuild/Release/EMsoftOO-*.tar.gz
 
   build-macos:
-    strategy:
-      matrix:
-        os: [macos-14, macos-13]
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies (macOS)
@@ -47,7 +44,7 @@ jobs:
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EMsoftOO-${{ matrix.os }}
+          name: EMsoftOO-MacOS
           path: /Users/EMs/EMsoftOOBuild/Release/EMsoftOO-*.dmg
 
   create-release:
