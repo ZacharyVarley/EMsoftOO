@@ -36,6 +36,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies (macOS)
+        run: |
+          brew install git cmake gcc ninja
       - name: Run macOS build script
         run: |
           chmod +x ./build_macos.sh
