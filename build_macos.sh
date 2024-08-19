@@ -11,7 +11,7 @@ sudo mv EMsoftSuperbuild EMsoftOOSuperbuild
 cd EMsoftOOSuperbuild && sudo mkdir Release && cd Release
 
 # Build EMsoftSuperbuild
-sudo cmake -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_CC_COMPILER=$CC_PATH -DCMAKE_CXX_COMPILER=$CXX_PATH -DCMAKE_Fortran_COMPILER=$FC_PATH ../ -G Ninja && sudo ninja
+sudo cmake -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=$CC_PATH -DCMAKE_CXX_COMPILER=$CXX_PATH -DCMAKE_Fortran_COMPILER=$FC_PATH ../ -G Ninja && sudo ninja
 
 # Clone EMsoftOO and EMsoftData
 cd ../..
@@ -21,7 +21,7 @@ sudo mkdir EMsoftOOBuild
 
 # Build EMsoftOO
 cd EMsoftOOBuild && sudo mkdir Release && cd Release
-sudo cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF -DCMAKE_CC_COMPILER=$CC_PATH -DCMAKE_CXX_COMPILER=$CXX_PATH -DCMAKE_Fortran_COMPILER=$FC_PATH ../../EMsoftOO -G Ninja && sudo ninja
+sudo cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF -DCMAKE_C_COMPILER=$CC_PATH -DCMAKE_CXX_COMPILER=$CXX_PATH -DCMAKE_Fortran_COMPILER=$FC_PATH ../../EMsoftOO -G Ninja && sudo ninja
 
 # Package Release EMsoftOO
 cpack -G DragNDrop
