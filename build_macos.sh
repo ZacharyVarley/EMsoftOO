@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Find gfortran path
-export FC='$(brew --prefix gcc)/bin/gfortran'
-echo $FC
+export FC=$(brew --prefix gcc)/bin/gfortran
+echo "gfortran path: $FC"
 
 # Clone EMsoft and set up SDK Release
 git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
