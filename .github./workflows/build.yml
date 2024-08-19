@@ -1,0 +1,99 @@
+name: EMsoft Nightly Build
+
+on:
+#   schedule:
+#     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies (Ubuntu)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git vim wget cmake gcc gfortran ninja-build build-essential libopenblas-dev apt-utils opencl-headers ocl-icd-opencl-dev ocl-icd-libopencl1 libpocl-dev clinfo
+
+    - name: Build EMsoft (Ubuntu)
+      run: |
+        chmod +x ./build_ubuntu.sh
+        ./build_ubuntu.sh
+
+    - name: Upload artifact (Ubuntu)
+      uses: actions/upload-artifact@v4
+      with:
+        name: EMsoft-package-ubuntu-latest
+        path: /home/runner/EMsoftOOBuild/Release/*.zip
+        retention-days: 1
+
+
+  test:
+    needs: [build-ubuntu]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: EMsoft-package-${{ matrix.os }}
+
+    # Add steps here to run your tests on the built artifact
+
+  release:
+    name: "Prelease"
+    needs: [build-ubuntu, test]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset (Ubuntu)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/EMsoft-package-ubuntu/EMsoft-ubuntu.zip
+        asset_name: EMsoft-ubuntu.zip
+        asset_content_type: application/zip
+
+    - name: Upload Release Asset (macOS)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/EMsoft-package-macos/EMsoft-macos.zip
+        asset_name: EMsoft-macos.zip
+        asset_content_type: application/zip
+
+    - name: Upload Release Asset (Windows)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: artifacts/EMsoft-package-windows/EMsoft-windows.zip
+        asset_name: EMsoft-windows.zip
+        asset_content_type: application/zip
