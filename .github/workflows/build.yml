@@ -48,7 +48,7 @@ jobs:
           path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.dmg
 
   create-ubuntu-release:
-    needs: [build-macos]
+    needs: [build-ubuntu]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -82,7 +82,7 @@ jobs:
           asset_content_type: application/gzip
 
   create-macos-release:
-    needs: [build-ubuntu]
+    needs: [build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
