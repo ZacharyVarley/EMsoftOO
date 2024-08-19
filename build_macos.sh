@@ -1,5 +1,8 @@
 #!/bin/bash
 
+brew upgrade
+brew install gcc
+
 # Clone EMsoft and set up SDK Debug/Release
 git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
 mv EMsoftSuperbuild EMsoftOOSuperbuild
