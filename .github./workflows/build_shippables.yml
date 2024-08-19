@@ -1,0 +1,35 @@
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Ubuntu build script
+        run: ./build_ubuntu.sh
+        shell: bash
+      - name: Upload Ubuntu artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EMsoftOO-Ubuntu
+          path: $HOME/EMsoftOOBuild/Release/EMsoftOO-*.tar.gz
+
+  build-macos:
+    strategy:
+      matrix:
+        os: [macos-14, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run macOS build script
+        run: ./build_macos.sh
+        shell: bash
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EMsoftOO-${{ matrix.os }}
+          path: /Users/EMs/EMsoftOOBuild/Release/EMsoftOO-*.dmg
