@@ -2,6 +2,8 @@
 
 # Find gfortran path
 export FC=$(brew --prefix gcc)/bin/gfortran
+FC_DIR=$(dirname "$FC")
+export PATH="$FC_DIR:$PATH"
 echo "which gfortran: $(which gfortran)"
 echo "gfortran path: $FC"
 
