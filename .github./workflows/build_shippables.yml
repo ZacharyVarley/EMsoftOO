@@ -1,0 +1,85 @@
+name: Multi-Platform Build and Auto-Release
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Ubuntu build script
+        run: ./build_ubuntu.sh
+        shell: bash
+      - name: Upload Ubuntu artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EMsoftOO-Ubuntu
+          path: $HOME/EMsoftOOBuild/Release/EMsoftOO-*.tar.gz
+
+  build-macos:
+    strategy:
+      matrix:
+        os: [macos-14, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run macOS build script
+        run: ./build_macos.sh
+        shell: bash
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EMsoftOO-${{ matrix.os }}
+          path: /Users/EMs/EMsoftOOBuild/Release/EMsoftOO-*.dmg
+
+  create-release:
+    needs: [build-ubuntu, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "::set-output name=release_tag::$(date +'%Y.%m.%d-%H%M')"
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          release_name: Release ${{ steps.tag.outputs.release_tag }}
+          draft: false
+          prerelease: false
+      - name: Upload Ubuntu Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./EMsoftOO-Ubuntu/EMsoftOO-*.tar.gz
+          asset_name: EMsoftOO-Ubuntu-${{ steps.tag.outputs.release_tag }}.tar.gz
+          asset_content_type: application/gzip
+      - name: Upload macOS 14 Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./EMsoftOO-macos-14/EMsoftOO-*.dmg
+          asset_name: EMsoftOO-macOS-14-${{ steps.tag.outputs.release_tag }}.dmg
+          asset_content_type: application/x-apple-diskimage
+      - name: Upload macOS 13 Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./EMsoftOO-macos-13/EMsoftOO-*.dmg
+          asset_name: EMsoftOO-macOS-13-${{ steps.tag.outputs.release_tag }}.dmg
+          asset_content_type: application/x-apple-diskimage
