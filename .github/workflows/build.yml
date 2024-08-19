@@ -5,9 +5,9 @@ on:
     branches: [ develop ]
   pull_request:
     branches: [ develop ]
-  # Uncomment the following lines if you want to enable scheduled runs
-  # schedule:
-  #   - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+
+env:
+  BUILD_DIR: EMsoftOOBuild/Release
 
 jobs:
   build-ubuntu:
@@ -27,7 +27,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-Ubuntu
-          path: $HOME/EMsoftOOBuild/Release/EMsoftOO-*.tar.gz
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.tar.gz
 
   build-macos:
     runs-on: macos-latest
@@ -45,10 +45,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-MacOS
-          path: $HOME/EMsoftOOBuild/Release/EMsoftOO-*.dmg
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.dmg
 
-  create-release:
-    needs: [build-ubuntu, build-macos]
+  create-ubuntu-release:
+    needs: [build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -56,9 +56,11 @@ jobs:
       - name: Generate release tag
         id: tag
         run: |
-          echo "::set-output name=release_tag::$(date +'%Y.%m.%d-%H%M')"
-      - name: Download all artifacts
+          echo "release_tag=$(date +'%Y.%m.%d-%H%M')-ubuntu" >> $GITHUB_OUTPUT
+      - name: Download Ubuntu artifact
         uses: actions/download-artifact@v4
+        with:
+          name: EMsoftOO-Ubuntu
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -66,7 +68,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
-          release_name: Release ${{ steps.tag.outputs.release_tag }}
+          release_name: Ubuntu Release ${{ steps.tag.outputs.release_tag }}
           draft: false
           prerelease: false
       - name: Upload Ubuntu Release Asset
@@ -75,15 +77,40 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./EMsoftOO-Ubuntu/EMsoftOO-*.tar.gz
+          asset_path: ./EMsoftOO-*.tar.gz
           asset_name: EMsoftOO-Ubuntu-${{ steps.tag.outputs.release_tag }}.tar.gz
           asset_content_type: application/gzip
+
+  create-macos-release:
+    needs: [build-ubuntu]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "release_tag=$(date +'%Y.%m.%d-%H%M')-macos" >> $GITHUB_OUTPUT
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: EMsoftOO-MacOS
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          release_name: macOS Release ${{ steps.tag.outputs.release_tag }}
+          draft: false
+          prerelease: false
       - name: Upload macOS Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./EMsoftOO-macos-latest/EMsoftOO-*.dmg
-          asset_name: EMsoftOO-macOS-latest-${{ steps.tag.outputs.release_tag }}.dmg
+          asset_path: ./EMsoftOO-*.dmg
+          asset_name: EMsoftOO-macOS-${{ steps.tag.outputs.release_tag }}.dmg
           asset_content_type: application/x-apple-diskimage
