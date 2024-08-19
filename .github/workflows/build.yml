@@ -1,18 +1,23 @@
 name: Multi-Platform Build and Auto-Release
 
 on:
-#   schedule:
-#     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
   push:
     branches: [ develop ]
   pull_request:
     branches: [ develop ]
+  # Uncomment the following lines if you want to enable scheduled runs
+  # schedule:
+  #   - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies (Ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git vim wget cmake gcc gfortran ninja-build build-essential libopenblas-dev apt-utils opencl-headers ocl-icd-opencl-dev ocl-icd-libopencl1 libpocl-dev clinfo
       - name: Run Ubuntu build script
         run: |
           chmod +x ./build_ubuntu.sh
@@ -31,6 +36,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies (macOS)
+        run: |
+          brew update
+          brew install git cmake gcc ninja openblas
+          brew install open-mpi
       - name: Run macOS build script
         run: |
           chmod +x ./build_macos.sh
