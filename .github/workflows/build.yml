@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-MacOS
-          path: /Users/EMs/EMsoftOOBuild/Release/EMsoftOO-*.dmg
+          path: $HOME/EMsoftOOBuild/Release/EMsoftOO-*.dmg
 
   create-release:
     needs: [build-ubuntu, build-macos]
@@ -78,21 +78,12 @@ jobs:
           asset_path: ./EMsoftOO-Ubuntu/EMsoftOO-*.tar.gz
           asset_name: EMsoftOO-Ubuntu-${{ steps.tag.outputs.release_tag }}.tar.gz
           asset_content_type: application/gzip
-      - name: Upload macOS 14 Release Asset
+      - name: Upload macOS Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./EMsoftOO-macos-14/EMsoftOO-*.dmg
-          asset_name: EMsoftOO-macOS-14-${{ steps.tag.outputs.release_tag }}.dmg
-          asset_content_type: application/x-apple-diskimage
-      - name: Upload macOS 13 Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./EMsoftOO-macos-13/EMsoftOO-*.dmg
-          asset_name: EMsoftOO-macOS-13-${{ steps.tag.outputs.release_tag }}.dmg
+          asset_path: ./EMsoftOO-macos-latest/EMsoftOO-*.dmg
+          asset_name: EMsoftOO-macOS-latest-${{ steps.tag.outputs.release_tag }}.dmg
           asset_content_type: application/x-apple-diskimage
