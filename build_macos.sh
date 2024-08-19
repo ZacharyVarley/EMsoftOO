@@ -1,21 +1,8 @@
 #!/bin/bash
 
-set -e  # Exit immediately if a command exits with a non-zero status.
-set -x  # Print commands and their arguments as they are executed.
-
-# Update and install dependencies
-brew upgrade
-brew install gcc cmake ninja openblas open-mpi
-
 # Find gfortran path
 GFORTRAN_PATH=$(brew --prefix gcc)/bin/gfortran
 echo "gfortran path: $GFORTRAN_PATH"
-
-# Verify gfortran exists
-if [ ! -f "$GFORTRAN_PATH" ]; then
-    echo "Error: gfortran not found at $GFORTRAN_PATH"
-    exit 1
-fi
 
 # Clone EMsoft and set up SDK Release
 git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
