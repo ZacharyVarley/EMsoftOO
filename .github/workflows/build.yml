@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ develop ]
 
-env:
-  BUILD_DIR: EMsoftOOBuild/Release
-
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -27,7 +24,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-Ubuntu
-          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.tar.gz
+          path: ${{ github.workspace }}/EMsoftOOBuild/Release/EMsoftOO-*.tar.gz
 
   build-macos:
     runs-on: macos-latest
@@ -45,18 +42,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-MacOS
-          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.dmg
+          path: ${{ github.workspace }}/EMsoftOOBuild/Release/EMsoftOO-*.dmg
 
   create-ubuntu-release:
     needs: [build-ubuntu]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Generate release tag
-        id: tag
-        run: |
-          echo "release_tag=$(date +'%Y.%m.%d-%H%M')-ubuntu" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
       - name: Download Ubuntu artifact
         uses: actions/download-artifact@v4
         with:
@@ -67,8 +59,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.tag.outputs.release_tag }}
-          release_name: Ubuntu Release ${{ steps.tag.outputs.release_tag }}
+          tag_name: ubuntu-${{ github.sha }}
+          release_name: Ubuntu Release ${{ github.sha }}
           draft: false
           prerelease: false
       - name: Upload Ubuntu Release Asset
@@ -78,19 +70,14 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./EMsoftOO-*.tar.gz
-          asset_name: EMsoftOO-Ubuntu-${{ steps.tag.outputs.release_tag }}.tar.gz
+          asset_name: EMsoftOO-Ubuntu-${{ github.sha }}.tar.gz
           asset_content_type: application/gzip
 
   create-macos-release:
     needs: [build-macos]
     runs-on: macos-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Generate release tag
-        id: tag
-        run: |
-          echo "release_tag=$(date +'%Y.%m.%d-%H%M')-macos" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
@@ -101,8 +88,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.tag.outputs.release_tag }}
-          release_name: macOS Release ${{ steps.tag.outputs.release_tag }}
+          tag_name: macos-${{ github.sha }}
+          release_name: macOS Release ${{ github.sha }}
           draft: false
           prerelease: false
       - name: Upload macOS Release Asset
@@ -112,5 +99,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./EMsoftOO-*.dmg
-          asset_name: EMsoftOO-macOS-${{ steps.tag.outputs.release_tag }}.dmg
+          asset_name: EMsoftOO-macOS-${{ github.sha }}.dmg
           asset_content_type: application/x-apple-diskimage
