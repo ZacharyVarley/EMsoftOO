@@ -4,8 +4,6 @@
 export FC=$(brew --prefix gcc)/bin/gfortran
 FC_DIR=$(dirname "$FC")
 export PATH="$FC_DIR:$PATH"
-echo "which gfortran: $(which gfortran)"
-echo "gfortran path: $FC"
 
 # Clone EMsoft and set up SDK Release
 git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
@@ -33,4 +31,4 @@ cd EMsoftOOBuild && sudo mkdir Release && cd Release
 sudo cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=/opt/EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF ../../EMsoftOO -G Ninja && sudo ninja
 
 # Package Release EMsoftOO
-cpack -G DragNDrop
+sudo cpack -G DragNDrop
