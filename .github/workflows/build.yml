@@ -64,6 +64,31 @@ jobs:
           name: EMsoftOO-MacOS
           path: ${{ steps.check_artifact.outputs.ARTIFACT_PATH }}
 
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Windows build script
+        shell: cmd
+        run: |
+          build_windows.bat
+      - name: Check for built artifact
+        id: check_artifact
+        shell: pwsh
+        run: |
+          $ARTIFACT_PATH = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter "EMsoftOO-*.zip" | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $ARTIFACT_PATH) {
+            Write-Error "Error: Windows artifact not found"
+            exit 1
+          }
+          echo "ARTIFACT_PATH=$ARTIFACT_PATH" >> $env:GITHUB_OUTPUT
+          echo "Found artifact at: $ARTIFACT_PATH"
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EMsoftOO-Windows
+          path: ${{ steps.check_artifact.outputs.ARTIFACT_PATH }}
+
   create-ubuntu-release:
     needs: [build-ubuntu]
     runs-on: ubuntu-latest
@@ -153,3 +178,50 @@ jobs:
           asset_path: ${{ steps.find_dmg.outputs.DMG_PATH }}
           asset_name: EMsoftOO-macOS-${{ github.sha }}.dmg
           asset_content_type: application/x-apple-diskimage
+
+  create-windows-release:
+    needs: [build-windows]
+    runs-on: windows-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: EMsoftOO-Windows
+      - name: List downloaded files
+        shell: pwsh
+        run: Get-ChildItem -Recurse
+      - name: Find ZIP file
+        id: find_zip
+        shell: pwsh
+        run: |
+          $ZIP_PATH = Get-ChildItem -Path . -Recurse -Filter "EMsoftOO-*.zip" | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $ZIP_PATH) {
+            Write-Error "ZIP file not found"
+            exit 1
+          }
+          echo "ZIP_PATH=$ZIP_PATH" >> $env:GITHUB_OUTPUT
+          echo "Found ZIP at: $ZIP_PATH"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: windows-${{ github.sha }}
+          release_name: Windows Release ${{ github.sha }}
+          draft: false
+          prerelease: false
+      - name: Upload Windows Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_zip.outputs.ZIP_PATH }}
+          asset_name: EMsoftOO-Windows-${{ github.sha }}.zip
+          asset_content_type: application/zip
