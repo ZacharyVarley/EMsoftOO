@@ -10,21 +10,25 @@ if %ERRORLEVEL% neq 0 (
     @"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
 )
 
-:: Install required tools and compilers
-choco install -y cmake ninja mingw gfortran visualstudio2019buildtools visualstudio2019-workload-vctools
+:: Install required tools
+choco install -y cmake ninja visualstudio2019buildtools visualstudio2019-workload-vctools
+:: Install Intel oneAPI Base Toolkit (includes Fortran compiler)
+choco install -y intel-oneapi-basekit
+
+:: Set up Visual Studio environment
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+
+:: Set up Intel Fortran environment
+call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 vs2019
 
 :: Set up environment variables
-set "PATH=%PATH%;C:\Program Files\CMake\bin;C:\ProgramData\chocolatey\bin;C:\tools\mingw64\bin"
-set "CC=gcc"
-set "CXX=g++"
-set "FC=gfortran"
+set "PATH=%PATH%;C:\Program Files\CMake\bin;C:\ProgramData\chocolatey\bin"
 
 :: Verify installations
 where cmake
 where ninja
-where gcc
-where g++
-where gfortran
+where cl
+where ifort
 
 :: Install vcpkg and required libraries
 git clone https://github.com/Microsoft/vcpkg.git
