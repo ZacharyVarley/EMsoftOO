@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ develop ]
 
+env:
+  BUILD_DIR: EMsoftOOBuild/Release
+
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -20,11 +23,18 @@ jobs:
           chmod +x ./build_ubuntu.sh
           ./build_ubuntu.sh
         shell: bash
+      - name: Check for built artifact
+        run: |
+          ls -l ${{ github.workspace }}/${{ env.BUILD_DIR }}
+          if [ ! -f ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.tar.gz ]; then
+            echo "Error: Ubuntu artifact not found"
+            exit 1
+          fi
       - name: Upload Ubuntu artifact
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-Ubuntu
-          path: ${{ github.workspace }}/EMsoftOOBuild/Release/EMsoftOO-*.tar.gz
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.tar.gz
 
   build-macos:
     runs-on: macos-latest
@@ -38,25 +48,40 @@ jobs:
           chmod +x ./build_macos.sh
           ./build_macos.sh
         shell: bash
+      - name: Check for built artifact
+        run: |
+          ls -l ${{ github.workspace }}/${{ env.BUILD_DIR }}
+          if [ ! -f ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.dmg ]; then
+            echo "Error: macOS artifact not found"
+            exit 1
+          fi
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-MacOS
-          path: ${{ github.workspace }}/EMsoftOOBuild/Release/EMsoftOO-*.dmg
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.dmg
 
   create-ubuntu-release:
     needs: [build-ubuntu]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: write
     steps:
       - uses: actions/checkout@v4
       - name: Download Ubuntu artifact
         uses: actions/download-artifact@v4
         with:
           name: EMsoftOO-Ubuntu
+      - name: List downloaded files
+        run: ls -R
+      - name: Find tar.gz file
+        id: find_tarball
+        run: |
+          TARBALL_PATH=$(find . -name "EMsoftOO-*.tar.gz" -type f -print -quit)
+          if [ -z "$TARBALL_PATH" ]; then
+            echo "tar.gz file not found"
+            exit 1
+          fi
+          echo "TARBALL_PATH=$TARBALL_PATH" >> $GITHUB_OUTPUT
+          echo "Found tar.gz at: $TARBALL_PATH"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -73,23 +98,31 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./EMsoftOO-*.tar.gz
+          asset_path: ${{ steps.find_tarball.outputs.TARBALL_PATH }}
           asset_name: EMsoftOO-Ubuntu-${{ github.sha }}.tar.gz
           asset_content_type: application/gzip
 
   create-macos-release:
     needs: [build-macos]
     runs-on: macos-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: write
     steps:
       - uses: actions/checkout@v4
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
           name: EMsoftOO-MacOS
+      - name: List downloaded files
+        run: ls -R
+      - name: Find DMG file
+        id: find_dmg
+        run: |
+          DMG_PATH=$(find . -name "EMsoftOO-*.dmg" -type f -print -quit)
+          if [ -z "$DMG_PATH" ]; then
+            echo "DMG file not found"
+            exit 1
+          fi
+          echo "DMG_PATH=$DMG_PATH" >> $GITHUB_OUTPUT
+          echo "Found DMG at: $DMG_PATH"
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -106,6 +139,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./EMsoftOO-*.dmg
+          asset_path: ${{ steps.find_dmg.outputs.DMG_PATH }}
           asset_name: EMsoftOO-macOS-${{ github.sha }}.dmg
           asset_content_type: application/x-apple-diskimage
