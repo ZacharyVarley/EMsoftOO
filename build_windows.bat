@@ -11,20 +11,24 @@ if %ERRORLEVEL% neq 0 (
 )
 
 :: Install required tools
-choco install -y cmake ninja visualstudio2019buildtools visualstudio2019-workload-vctools mingw
+choco install -y cmake ninja visualstudio2019buildtools visualstudio2019-workload-vctools
+choco install -y intel-oneapi-compiler-fortran
 
 :: Set up Visual Studio environment
 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 
+:: Set up Intel oneAPI environment
+call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 vs2019
+
 :: Set up environment variables
-set "PATH=%PATH%;C:\Program Files\CMake\bin;C:\ProgramData\chocolatey\bin;C:\tools\mingw64\bin"
-set "FC=gfortran"
+set "PATH=%PATH%;C:\Program Files\CMake\bin;C:\ProgramData\chocolatey\bin"
+set "FC=ifort"
 
 :: Verify installations
 where cmake
 where ninja
 where cl
-where gfortran
+where ifort
 
 :: Install vcpkg and required libraries
 if not exist vcpkg (
@@ -54,7 +58,7 @@ if not exist Release mkdir Release
 cd Release
 
 :: Configure and build EMsoftSuperbuild
-cmake -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_Fortran_COMPILER=gfortran -G "Ninja" ..
+cmake -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_Fortran_COMPILER=ifort -G "Ninja" ..
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 ninja
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
@@ -69,7 +73,7 @@ if not exist EMsoftOOBuild mkdir EMsoftOOBuild
 cd EMsoftOOBuild
 if not exist Release mkdir Release
 cd Release
-cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_Fortran_COMPILER=gfortran -G "Ninja" %ROOT_DIR%\EMsoftOO
+cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DCMAKE_Fortran_COMPILER=ifort -G "Ninja" %ROOT_DIR%\EMsoftOO
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 ninja
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
