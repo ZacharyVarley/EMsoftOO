@@ -47,6 +47,10 @@ jobs:
   create-ubuntu-release:
     needs: [build-ubuntu]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     steps:
       - uses: actions/checkout@v4
       - name: Download Ubuntu artifact
@@ -76,6 +80,10 @@ jobs:
   create-macos-release:
     needs: [build-macos]
     runs-on: macos-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
     steps:
       - uses: actions/checkout@v4
       - name: Download macOS artifact
