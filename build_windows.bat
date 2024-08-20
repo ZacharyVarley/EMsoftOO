@@ -32,6 +32,7 @@ cd vcpkg
 call bootstrap-vcpkg.bat
 vcpkg integrate install
 vcpkg install opencl:x64-windows
+vcpkg install openblas:x64-windows
 
 :: Set VCPKG_ROOT environment variable
 set "VCPKG_ROOT=%CD%"
