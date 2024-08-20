@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ develop ]
 
-env:
-  BUILD_DIR: EMsoftOOBuild/Release
-
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
@@ -24,17 +21,20 @@ jobs:
           ./build_ubuntu.sh
         shell: bash
       - name: Check for built artifact
+        id: check_artifact
         run: |
-          ls -l ${{ github.workspace }}/${{ env.BUILD_DIR }}
-          if [ ! -f ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.tar.gz ]; then
+          ARTIFACT_PATH=$(find $HOME -name "EMsoftOO-*.tar.gz" -type f -print -quit)
+          if [ -z "$ARTIFACT_PATH" ]; then
             echo "Error: Ubuntu artifact not found"
             exit 1
           fi
+          echo "ARTIFACT_PATH=$ARTIFACT_PATH" >> $GITHUB_OUTPUT
+          echo "Found artifact at: $ARTIFACT_PATH"
       - name: Upload Ubuntu artifact
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-Ubuntu
-          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.tar.gz
+          path: ${{ steps.check_artifact.outputs.ARTIFACT_PATH }}
 
   build-macos:
     runs-on: macos-latest
@@ -49,17 +49,20 @@ jobs:
           ./build_macos.sh
         shell: bash
       - name: Check for built artifact
+        id: check_artifact
         run: |
-          ls -l ${{ github.workspace }}/${{ env.BUILD_DIR }}
-          if [ ! -f ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.dmg ]; then
+          ARTIFACT_PATH=$(find $HOME -name "EMsoftOO-*.dmg" -type f -print -quit)
+          if [ -z "$ARTIFACT_PATH" ]; then
             echo "Error: macOS artifact not found"
             exit 1
           fi
+          echo "ARTIFACT_PATH=$ARTIFACT_PATH" >> $GITHUB_OUTPUT
+          echo "Found artifact at: $ARTIFACT_PATH"
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: EMsoftOO-MacOS
-          path: ${{ github.workspace }}/${{ env.BUILD_DIR }}/EMsoftOO-*.dmg
+          path: ${{ steps.check_artifact.outputs.ARTIFACT_PATH }}
 
   create-ubuntu-release:
     needs: [build-ubuntu]
