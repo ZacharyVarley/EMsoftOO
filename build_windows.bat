@@ -12,7 +12,8 @@ if %ERRORLEVEL% neq 0 (
 
 :: Install required tools
 choco install -y cmake ninja visualstudio2019buildtools visualstudio2019-workload-vctools
-:: Install Intel oneAPI Base Toolkit (includes Fortran compiler)
+
+:: Install Intel oneAPI Base Toolkit (includes Intel Fortran)
 choco install -y intel-oneapi-basekit
 
 :: Set up Visual Studio environment
@@ -23,6 +24,7 @@ call "C:\Program Files (x86)\Intel\oneAPI\setvars.bat" intel64 vs2019
 
 :: Set up environment variables
 set "PATH=%PATH%;C:\Program Files\CMake\bin;C:\ProgramData\chocolatey\bin"
+set "FC=ifort"
 
 :: Verify installations
 where cmake
@@ -31,9 +33,13 @@ where cl
 where ifort
 
 :: Install vcpkg and required libraries
-git clone https://github.com/Microsoft/vcpkg.git
-cd vcpkg
-call bootstrap-vcpkg.bat
+if not exist vcpkg (
+    git clone https://github.com/Microsoft/vcpkg.git
+    cd vcpkg
+    call bootstrap-vcpkg.bat
+) else (
+    cd vcpkg
+)
 vcpkg integrate install
 vcpkg install opencl:x64-windows
 vcpkg install openblas:x64-windows
@@ -46,27 +52,30 @@ cd %ROOT_DIR%
 mkdir C:\EMsoftOO_SDK
 
 :: Clone EMsoft and set up SDK
-git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git
-rename EMsoftSuperbuild EMsoftOOSuperbuild
+if not exist EMsoftOOSuperbuild (
+    git clone --branch developOO https://github.com/EMsoft-org/EMsoftSuperbuild.git EMsoftOOSuperbuild
+)
 cd EMsoftOOSuperbuild
-mkdir Release && cd Release
+if not exist Release mkdir Release
+cd Release
 
 :: Configure and build EMsoftSuperbuild
-cmake -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -G "Ninja" ..
+cmake -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -DCMAKE_Fortran_COMPILER=ifort -G "Ninja" ..
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 ninja
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
 :: Clone EMsoftOO and EMsoftData
 cd %ROOT_DIR%
-git clone https://github.com/EMsoft-org/EMsoftData.git
-git clone https://github.com/ZacharyVarley/EMsoftOO.git
-mkdir EMsoftOOBuild
+if not exist EMsoftData git clone https://github.com/EMsoft-org/EMsoftData.git
+if not exist EMsoftOO git clone https://github.com/ZacharyVarley/EMsoftOO.git
+if not exist EMsoftOOBuild mkdir EMsoftOOBuild
 
 :: Build EMsoftOO
 cd EMsoftOOBuild
-mkdir Release && cd Release
-cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -G "Ninja" %ROOT_DIR%\EMsoftOO
+if not exist Release mkdir Release
+cd Release
+cmake -DCMAKE_BUILD_TYPE=Release -DEMsoftOO_SDK=C:\EMsoftOO_SDK -DBUILD_SHARED_LIBS=OFF -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake -DCMAKE_Fortran_COMPILER=ifort -G "Ninja" %ROOT_DIR%\EMsoftOO
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 ninja
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
